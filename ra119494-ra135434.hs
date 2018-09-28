@@ -2,11 +2,7 @@ import qualified Data.Map.Strict as M
 import Data.List as L
 import Data.Maybe
 
-type Node = Char
-type Edge = ([Node], Float)
-type Graph = ([Node], [Edge])
-type Point = (Char, [Float])
-
+-- PRECISA MUDAR DAQUI ------------------------------------------------------------------------------------------------------------------------------------
 type Vertice = [Char] 
 type Vizinhos = M.Map Vertice [(Vertice, Float)]
 
@@ -46,6 +42,25 @@ dij' vizinhos final atual d = dij vizinhos final newd
              newd = L.foldl' combine (Md (dist d) newq) viz
 
 
+printout i f d = let
+           path i f d                 
+                | i==f = []
+                | otherwise = let
+                     prev = snd (dist d M.! f)
+                     in prev : path i prev d
+           in do
+              putStrLn ("inicial: " ++ i)
+              putStrLn ("final: " ++  f)    
+              --print d
+              if M.null (dist d) then do
+                           putStrLn "nada"
+                           else do
+                           putStrLn ("custo: "++ (show  (fst  (dist d M.! f))))
+                           mapM_ (\ x -> putStr (x ++ " "))  $ L.reverse $ f: path i f d
+                           putStrLn ""
+
+-- ATÉ AQUI ------------------------------------------------------------------------------------------------------------------------------------
+
 myproc lines = let
                d = M.empty
                addx a b v  d = if a `M.member` d then  M.insertWith (++) a [(b,v)] d else  M.insert a [(b,v)] d 
@@ -70,21 +85,3 @@ main = do
       vs = M.keys vizinhos
       d = dij vizinhos end $  initmydics vs start
     printout start end d
-
-
-printout i f d = let
-           path i f d                 
-                | i==f = []
-                | otherwise = let
-                     prev = snd (dist d M.! f)
-                     in prev : path i prev d
-           in do
-              putStrLn ("inicial: " ++ i)
-              putStrLn ("final: " ++  f)    
-              --print d
-              if M.null (dist d) then do
-                           putStrLn "nada"
-                           else do
-                           putStrLn ("custo: "++ (show  (fst  (dist d M.! f))))
-                           mapM_ (\ x -> putStr (x ++ " "))  $ L.reverse $ f: path i f d
-                           putStrLn ""
