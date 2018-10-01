@@ -1,12 +1,10 @@
+
 import qualified Data.Map.Strict as M
-import qualified Data.List as L
+import Data.List as L
 import Data.Maybe
--- vizinho = map (vertice, [(vizinho,dist)])
 
---  aux - map (vetice distancia)
-
-
-type Vertice = [String] 
+-- PRECISA MUDAR DAQUI ------------------------------------------------------------------------------------------------------------------------------------
+type Vertice = [Char] 
 type Vizinhos = M.Map Vertice [(Vertice, Float)]
 
 data Md = Md { dist :: M.Map Vertice (Float, Vertice)
@@ -45,33 +43,6 @@ dij' vizinhos final atual d = dij vizinhos final newd
              newd = L.foldl' combine (Md (dist d) newq) viz
 
 
-
-           
-
-main = do
-     -- vizinhos = M.fromList [("a",[("b",10.0),("c",11.0),("d",150.0)]),
-     --                        ("b",[("a",12.3),("c",4.0),("d",10)]),
-     --                        ("c",[("b",4.0),("d",1.0)]),
-     --                        ("d",[("a",4.1),("b",4.0),("c",2)])
-     --                        ]
-     lines <-getContents
-     let 
-       (initial,final,vizinhos) = proc lines 
-       vs = M.keys vizinhos
-       d = dij vizinhos final $  initmydics vs initial
-     --print d
-     printout initial final d
-
-
-proc lines = let
-               ls = words lines
-               d = M.empty
-               addx a b v  d = if a `M.member` d then  M.insertWith (++) a [(b,v)] d else  M.insert a [(b,v)] d 
-               proc' [a,b] d = (a,b,d)
-               proc' (a:b:v:ls) d = proc' ls $ addx a b (read v::Float)  d
-               in proc' ls d
-
---printout :: Vertice -> Vertice -> Md -> IO ()
 printout i f d = let
            path i f d                 
                 | i==f = []
@@ -88,3 +59,46 @@ printout i f d = let
                            putStrLn ("custo: "++ (show  (fst  (dist d M.! f))))
                            mapM_ (\ x -> putStr (x ++ " "))  $ L.reverse $ f: path i f d
                            putStrLn ""
+
+-- ATÉ AQUI ------------------------------------------------------------------------------------------------------------------------------------
+
+myproc lines middleLines = let
+               d = M.empty
+               addx a b v t d = if t == "a-pe" then (if a `M.member` d then  M.insertWith (++) a [(b,v)] d else  M.insert a [(b,v)] d)
+                                                else do 
+                                                    addx (a ++ "-linha") (b ++ "-linha") v "a-pe" d
+                                                    addx a (a ++ "-linha") (M.lookup t middleLines) "a-pe" d
+                                                    addx (a ++ "-linha") a 0 "a-pe" d
+                                                    addx (b ++ "-linha") b 0 "a-pe" d
+               proc' [a,b] d = d
+               proc' (l:ls) d = proc' ls $ addx a b (read v::Float) t d
+                   where [a,b,t,v] = words l
+               in proc' lines d
+               
+proclinhas lines = let
+        d = M.empty
+        builddic [a] d =  M.insert linha [((read v::Float)/2)] d
+            where [linha,v] = words a
+        builddic (l:ls) d = builddic ls (M.insert linha [((read v::Float)/2)] d)
+            where [linha,v] = words l
+        in builddic lines d
+
+getLines :: IO [String]
+getLines = lines <$> getContents
+
+main = do 
+    lines <- getLines
+    let
+      leadingLines = takeWhile (not . null) lines
+      (_:as) = dropWhile (not . null) lines
+      middleLines = takeWhile (not . null) as
+      (_:path:_) = dropWhile (not . null) as
+      (start:end:_) = words path
+      vizinhos = myproc leadingLines (proclinhas middleLines)
+      vs = M.keys vizinhos
+      out = initmydics vs start
+    print(out)
+ --     d = dij vizinhos end $  initmydics vs start
+ --   printout start end d
+ 
+Press h to open a hovercard with more details.
